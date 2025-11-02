@@ -1,6 +1,6 @@
-namespace DesktopManager.Models
+﻿namespace Helpdesk.Api.DTOs
 {
-    public class Usuario
+    public class UsuarioDto
     {
         public int Id { get; set; }
         public string Nome { get; set; } = string.Empty;

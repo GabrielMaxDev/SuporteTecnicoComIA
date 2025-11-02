@@ -3,6 +3,7 @@ using DesktopManager.Utils;
 using System;
 using System.Windows.Forms;
 using System.Drawing;
+using DesktopManager.Models;
 
 namespace DesktopManager.Forms
 {
@@ -20,9 +21,12 @@ namespace DesktopManager.Forms
         private Label lblBoasVindas = null!;
         private Label lblInfo = null!;
         private Timer timerRelogio = null!;
+        private readonly SessionManager _sessionManager;
 
-        public FormPrincipal()
+        public FormPrincipal(SessionManager sessionManager)
         {
+            _sessionManager = sessionManager;
+
             InitializeComponent();
             ConfigurarInterface();
             ExibirInformacoesUsuario();
@@ -78,7 +82,7 @@ namespace DesktopManager.Forms
             panelCentral.BackColor = Color.White;
 
             lblBoasVindas = new Label();
-            lblBoasVindas.Text = $"Bem-vindo(a), {SessionManager.Usuario?.Nome ?? "Usuário"}!";
+            lblBoasVindas.Text = $"Bem-vindo(a), {_sessionManager.Usuario?.Nome ?? "Usuário"}!";
             lblBoasVindas.Font = new Font("Segoe UI", 24, FontStyle.Bold);
             lblBoasVindas.ForeColor = Color.FromArgb(51, 51, 51);
             lblBoasVindas.AutoSize = true;
@@ -86,11 +90,11 @@ namespace DesktopManager.Forms
             panelCentral.Controls.Add(lblBoasVindas);
 
             lblInfo = new Label();
-            lblInfo.Text = "Selecione uma opção no menu acima para começar.\\n\\n" +
-                          "📋 Chamados - Gerencie todos os chamados do sistema\\n" +
-                          "👥 Usuários - Administre usuários e técnicos\\n" +
-                          "📊 Relatórios - Visualize estatísticas e métricas\\n\\n" +
-                          $"Perfil: {SessionManager.Usuario?.Perfil ?? "N/A"}";
+            lblInfo.Text = "Selecione uma opção no menu acima para começar.\n\n" +
+                             "📋 Chamados - Gerencie todos os chamados do sistema\n" +
+                             "👥 Usuários - Administre usuários e técnicos\n" +
+                             "📊 Relatórios - Visualize estatísticas e métricas\n\n" +
+                             $"Perfil: {_sessionManager.Usuario?.Perfil?? "N/A"}";
             lblInfo.Font = new Font("Segoe UI", 12);
             lblInfo.ForeColor = Color.FromArgb(100, 100, 100);
             lblInfo.AutoSize = true;
@@ -103,7 +107,7 @@ namespace DesktopManager.Forms
             statusBar.BackColor = Color.FromArgb(240, 240, 240);
 
             lblStatusUsuario = new ToolStripStatusLabel();
-            lblStatusUsuario.Text = $"Usuário: {SessionManager.Usuario?.Email ?? "N/A"}";
+            lblStatusUsuario.Text = $"Usuário: {_sessionManager.Usuario?.Username ?? "N/A"}";
             lblStatusUsuario.Spring = true;
             lblStatusUsuario.TextAlign = ContentAlignment.MiddleLeft;
             statusBar.Items.Add(lblStatusUsuario);
@@ -120,9 +124,9 @@ namespace DesktopManager.Forms
 
         private void ExibirInformacoesUsuario()
         {
-            if (SessionManager.Usuario != null)
+            if (_sessionManager.Usuario != null)
             {
-                this.Text = $"CATI - Desktop Manager - {SessionManager.Usuario.Nome}";
+                this.Text = $"CATI - Desktop Manager - {_sessionManager.Usuario.Nome}";
             }
         }
 
@@ -222,7 +226,7 @@ namespace DesktopManager.Forms
 
             if (resultado == DialogResult.Yes)
             {
-                SessionManager.Limpar();
+                _sessionManager.Limpar();
                 this.Close();
             }
         }
@@ -234,7 +238,7 @@ namespace DesktopManager.Forms
                 timerRelogio.Stop();
                 timerRelogio.Dispose();
             }
-            SessionManager.Limpar();
+            _sessionManager.Limpar();
             base.OnFormClosing(e);
         }
     }

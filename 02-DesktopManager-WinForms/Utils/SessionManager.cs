@@ -1,19 +1,21 @@
+using DesktopManager.Models;
+
 namespace DesktopManager.Utils
 {
-    public static class SessionManager
+    public class SessionManager
     {
-        public static Models.Usuario? Usuario { get; set; }
-        public static string? Token { get; set; }
+        public Models.Usuario? Usuario { get; set; }
+        public string? Token { get; set; } = string.Empty;
 
-        public static bool IsAutenticado()
+        public bool IsAutenticado()
         {
             return Usuario != null && !string.IsNullOrEmpty(Token);
         }
 
-        public static void Limpar()
+        public void Limpar()
         {
             Usuario = null;
-            Token = null;
+            Token = string.Empty;
         }
     }
 }
