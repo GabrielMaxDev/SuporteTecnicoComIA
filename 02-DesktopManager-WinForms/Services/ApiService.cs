@@ -1,96 +1,57 @@
-using System.Net.Http.Headers;
-using System.Text;
-using Newtonsoft.Json;
 using System;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
 
 namespace DesktopManager.Services
 {
     public class ApiService
     {
-        private static readonly HttpClient _httpClient = new();
-        private const string BASE_URL = "http://localhost:5000/api/";
+        private readonly HttpClient _httpClient;
 
-        static ApiService()
+        public ApiService(HttpClient httpClient)
         {
-            _httpClient.BaseAddress = new Uri(BASE_URL);
+            _httpClient = httpClient;
             _httpClient.Timeout = TimeSpan.FromSeconds(30);
         }
 
-        public static void SetAuthToken(string token)
+        public void SetAuthToken(string token)
         {
-            _httpClient.DefaultRequestHeaders.Authorization = 
+            _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", token);
         }
 
-        public static async Task<T?> GetAsync<T>(string endpoint)
+        public async Task<T?> GetAsync<T>(string endpoint)
         {
-            try
-            {
-                var response = await _httpClient.GetAsync(endpoint);
-                response.EnsureSuccessStatusCode();
-                var json = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<T>(json);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Erro ao obter dados: {ex.Message}", "Erro", 
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return default;
-            }
+            var response = await _httpClient.GetAsync(endpoint);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<T>();
         }
 
-        public static async Task<T?> PostAsync<T>(string endpoint, object data)
+        public async Task<T?> PostAsync<T>(string endpoint, object data)
         {
-            try
-            {
-                var json = JsonConvert.SerializeObject(data);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(endpoint, content);
-                response.EnsureSuccessStatusCode();
-                var responseJson = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<T>(responseJson);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Erro ao enviar dados: {ex.Message}", "Erro", 
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return default;
-            }
+            var response = await _httpClient.PostAsJsonAsync(endpoint, data);
+
+            // Verifique isso! Se o seu endpoint "auth/login" retornar um erro
+            // (como "usuário inválido"), ele pode vir com um status 400 (Bad Request).
+            // Se EnsureSuccessStatusCode() for muito agressivo, podemos tratar
+            // a resposta manualmente. Mas para começar, isso é mais robusto.
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<T>();
         }
 
-        public static async Task<bool> PutAsync(string endpoint, object data)
+        public async Task<bool> PutAsync(string endpoint, object data)
         {
-            try
-            {
-                var json = JsonConvert.SerializeObject(data);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PutAsync(endpoint, content);
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Erro ao atualizar: {ex.Message}", "Erro", 
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
+            var response = await _httpClient.PutAsJsonAsync(endpoint, data);
+            return response.IsSuccessStatusCode;
         }
 
-        public static async Task<bool> DeleteAsync(string endpoint)
+        public async Task<bool> DeleteAsync(string endpoint)
         {
-            try
-            {
-                var response = await _httpClient.DeleteAsync(endpoint);
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Erro ao excluir: {ex.Message}", "Erro", 
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
+            var response = await _httpClient.DeleteAsync(endpoint);
+            return response.IsSuccessStatusCode;
         }
     }
 }
